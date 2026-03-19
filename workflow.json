@@ -6,8 +6,7 @@
         "rule": {
           "interval": [
             {
-              "field": "minutes",
-              "minutesInterval": 2
+              "field": "hours"
             }
           ]
         }
@@ -68,26 +67,18 @@
                 "operation": "true",
                 "singleValue": true
               }
-            },
-            {
-              "id": "2e94e947-9967-4ccc-926f-1deb94073270",
-              "leftValue": "={{ $json.estado_atual }}",
-              "rightValue": "offline",
-              "operator": {
-                "type": "string",
-                "operation": "equals"
-              }
             }
           ],
           "combinator": "and"
         },
+        "looseTypeValidation": "=",
         "options": {}
       },
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        1104,
-        -368
+        736,
+        -464
       ],
       "id": "8c1f4a9a-14ea-498b-ac36-19b5d0cfc468",
       "name": "If",
@@ -95,6 +86,20 @@
       "retryOnFail": false,
       "maxTries": 2,
       "waitBetweenTries": 5
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "// 1. Memória global\nconst staticData = $getWorkflowStaticData('global');\n\n// 2. Dados atuais\nconst url = $json.url;\nconst agora = new Date();\n\n// 3. Formatar data\nconst dataHoraFormatada =\n  agora.toLocaleDateString('pt-PT') + ' ' +\n  agora.toLocaleTimeString('pt-PT', { hour: '2-digit', minute: '2-digit' });\n\n// 4. Estado atual\nconst estadoAtual = ($json.statusCode === 200) ? \"online\" : \"offline\";\n\n// 5. Estado anterior (por URL)\nconst estadoAnterior = staticData[url] || \"unknown\";\n\n// 6. Comparação\nconst mudouEstado = estadoAnterior !== estadoAtual;\n\n// 7. Retorno CORRETO\nreturn {\n  json: {\n    url: url,\n    data_hora: dataHoraFormatada,\n    timestamp_iso: agora.toISOString(),\n    estado_anterior: estadoAnterior,\n    estado_atual: estadoAtual,\n    mudou_estado: mudouEstado\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        528,
+        -464
+      ],
+      "id": "d2cfd9d8-b1fc-4918-bd38-98e5c85c9d93",
+      "name": "Code in JavaScript"
     },
     {
       "parameters": {
@@ -107,11 +112,11 @@
       "type": "n8n-nodes-base.gmail",
       "typeVersion": 2.2,
       "position": [
-        1616,
-        -96
+        1456,
+        -480
       ],
       "id": "2a84f194-6233-41b4-9bb8-79658c5ee4e0",
-      "name": "Send a message",
+      "name": "Message Server Online",
       "webhookId": "9ca388df-a1be-42d2-b0f1-232f6602da5a",
       "credentials": {
         "gmailOAuth2": {
@@ -122,43 +127,110 @@
     },
     {
       "parameters": {
-        "sendTo": "woudsonpassos@gmail.com",
-        "subject": "Server Status",
-        "emailType": "text",
-        "message": "Server Offline, please verify your AWS Instance",
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "13LaHzFs7N3Sxj50gqsNaSSsEVXul8QYFIcTJfmdvxXI",
+          "mode": "list",
+          "cachedResultName": "Monitor_Server",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/13LaHzFs7N3Sxj50gqsNaSSsEVXul8QYFIcTJfmdvxXI/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Monitoramento",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/13LaHzFs7N3Sxj50gqsNaSSsEVXul8QYFIcTJfmdvxXI/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "data_hora",
+              "displayName": "data_hora",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "timestamp_iso",
+              "displayName": "timestamp_iso",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "estado_anterior",
+              "displayName": "estado_anterior",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "estado_atual",
+              "displayName": "estado_atual",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "mudou_estado",
+              "displayName": "mudou_estado",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
         "options": {}
       },
-      "type": "n8n-nodes-base.gmail",
-      "typeVersion": 2.2,
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
       "position": [
-        1616,
-        -560
+        1216,
+        -480
       ],
-      "id": "275cf06e-0d33-4b1d-aebc-d5a11cdbd88c",
-      "name": "Send a message1",
-      "webhookId": "620e9825-6f63-4c5f-a14c-3730ef4a4e44",
-      "executeOnce": false,
-      "alwaysOutputData": false,
+      "id": "993f01b2-0e70-489c-b4c7-0c3dfe2b2343",
+      "name": "Append a row in True",
       "credentials": {
-        "gmailOAuth2": {
-          "id": "nezm5hRstXAXRpuK",
-          "name": "Gmail account 2"
+        "googleSheetsOAuth2Api": {
+          "id": "oJ87ZqyEkvR2Zvft",
+          "name": "Google Sheets OAuth2 API"
         }
       }
     },
     {
       "parameters": {
         "mode": "runOnceForEachItem",
-        "jsCode": "// 1. Aceder à memória e dados atuais\nconst staticData = $getWorkflowStaticData('global');\nconst url = $json.url;\nconst agora = new Date();\n\n// 2. Formatar data e hora (sem segundos)\nconst dataHoraFormatada =\n  agora.toLocaleDateString('pt-PT') + ' ' +\n  agora.toLocaleTimeString('pt-PT', { hour: '2-digit', minute: '2-digit' });\n\n// 3. Definir estados\nconst estadoAtual = ($json.statusCode === 200) ? \"online\" : \"offline\";\n\n// 🔥 IMPORTANTE: agora por URL (não global)\nconst estadoAnterior = staticData[url] || \"unknown\";\n\n// 4. NÃO atualizar aqui (isso vem depois do IF)\n\n// 5. Retorno correto para n8n\nreturn {\n  url: url, // Garante que a variável 'url' foi definida acima\n  Data_Hora: dataHoraFormatada,\n  timestamp_iso: agora.toISOString(),\n  Estado_Anterior: estadoAnterior,\n  Estado_Atual: estadoAtual,\n  Mudou_Estado: estadoAnterior !== estadoAtual\n};"
+        "jsCode": "// 1. Memória global\nconst staticData = $getWorkflowStaticData('global');\n\n// 2. Dados\nconst url = $json.url;\nconst estadoAtual = $json.estado_atual;\n\n// 3. Guardar estado por URL\nstaticData[url] = estadoAtual;\n\n// 4. Retornar\nreturn {\n  json: $json\n};"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        704,
-        -464
+        1008,
+        -480
       ],
-      "id": "d2cfd9d8-b1fc-4918-bd38-98e5c85c9d93",
-      "name": "Code in JavaScript"
+      "id": "ccc2768a-b985-4d53-84a3-0672a64c332c",
+      "name": "Code to save staticData"
     },
     {
       "parameters": {
@@ -221,11 +293,11 @@
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.7,
       "position": [
-        1344,
-        -560
+        1216,
+        -176
       ],
       "id": "c3f4c968-0fc6-4e04-a99d-0bd566306138",
-      "name": "Append row in sheet",
+      "name": "Append row in False",
       "credentials": {
         "googleSheetsOAuth2Api": {
           "id": "oJ87ZqyEkvR2Zvft",
@@ -235,74 +307,29 @@
     },
     {
       "parameters": {
-        "operation": "append",
-        "documentId": {
-          "__rl": true,
-          "value": "13LaHzFs7N3Sxj50gqsNaSSsEVXul8QYFIcTJfmdvxXI",
-          "mode": "list",
-          "cachedResultName": "Monitor_Server",
-          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/13LaHzFs7N3Sxj50gqsNaSSsEVXul8QYFIcTJfmdvxXI/edit?usp=drivesdk"
-        },
-        "sheetName": {
-          "__rl": true,
-          "value": "gid=0",
-          "mode": "list",
-          "cachedResultName": "Monitoramento",
-          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/13LaHzFs7N3Sxj50gqsNaSSsEVXul8QYFIcTJfmdvxXI/edit#gid=0"
-        },
-        "columns": {
-          "mappingMode": "autoMapInputData",
-          "value": {},
-          "matchingColumns": [],
-          "schema": [],
-          "attemptToConvertTypes": false,
-          "convertFieldsToString": false
-        },
+        "sendTo": "woudsonpassos@gmail.com",
+        "subject": "Server Status",
+        "emailType": "text",
+        "message": "Server Offline, please verify your AWS Instance",
         "options": {}
       },
-      "type": "n8n-nodes-base.googleSheets",
-      "typeVersion": 4.7,
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
       "position": [
-        1328,
-        -96
+        1456,
+        -176
       ],
-      "id": "993f01b2-0e70-489c-b4c7-0c3dfe2b2343",
-      "name": "Append row in sheet1",
+      "id": "275cf06e-0d33-4b1d-aebc-d5a11cdbd88c",
+      "name": "Message Server Offline",
+      "webhookId": "620e9825-6f63-4c5f-a14c-3730ef4a4e44",
+      "executeOnce": false,
+      "alwaysOutputData": false,
       "credentials": {
-        "googleSheetsOAuth2Api": {
-          "id": "oJ87ZqyEkvR2Zvft",
-          "name": "Google Sheets OAuth2 API"
+        "gmailOAuth2": {
+          "id": "nezm5hRstXAXRpuK",
+          "name": "Gmail account 2"
         }
       }
-    },
-    {
-      "parameters": {
-        "mode": "raw",
-        "jsonOutput": "{\n  \"urls\": [\n    \"https://google.com\",\n    \"http://15.229.63.74\"\n  ]\n}",
-        "options": {}
-      },
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.4,
-      "position": [
-        480,
-        -464
-      ],
-      "id": "8e572b1b-e1e2-4b6a-9193-bb8b80eedb8e",
-      "name": "Edit Fields"
-    },
-    {
-      "parameters": {
-        "mode": "runOnceForEachItem",
-        "jsCode": "const staticData = $getWorkflowStaticData('global');\n\nconst url = $json.url;\nconst estadoAtual = $json.Estado_Atual;\n\nstaticData[url] = estadoAtual;\n\nreturn {\n  json: $json\n};"
-      },
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        1344,
-        -368
-      ],
-      "id": "ccc2768a-b985-4d53-84a3-0672a64c332c",
-      "name": "Code in JavaScript1"
     }
   ],
   "pinData": {},
@@ -322,7 +349,7 @@
       "main": [
         [
           {
-            "node": "Edit Fields",
+            "node": "Code in JavaScript",
             "type": "main",
             "index": 0
           }
@@ -334,14 +361,14 @@
       "main": [
         [
           {
-            "node": "Append row in sheet",
+            "node": "Code to save staticData",
             "type": "main",
             "index": 0
           }
         ],
         [
           {
-            "node": "Code in JavaScript1",
+            "node": "Append row in False",
             "type": "main",
             "index": 0
           }
@@ -360,49 +387,38 @@
         ]
       ]
     },
-    "Send a message": {
+    "Message Server Online": {
       "main": [
         []
       ]
     },
-    "Append row in sheet": {
+    "Append a row in True": {
       "main": [
         [
           {
-            "node": "Send a message1",
+            "node": "Message Server Online",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Append row in sheet1": {
+    "Code to save staticData": {
       "main": [
         [
           {
-            "node": "Send a message",
+            "node": "Append a row in True",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Edit Fields": {
+    "Append row in False": {
       "main": [
         [
           {
-            "node": "Code in JavaScript",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Code in JavaScript1": {
-      "main": [
-        [
-          {
-            "node": "Append row in sheet1",
+            "node": "Message Server Offline",
             "type": "main",
             "index": 0
           }
@@ -416,7 +432,7 @@
     "binaryMode": "separate",
     "availableInMCP": false
   },
-  "versionId": "bc82366a-dfcb-4a89-b388-27859d449cfb",
+  "versionId": "40751312-acc6-4a38-b85a-af2e255afa86",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "7b1ebdca0069f2e4f81f2142b5eb5b226dea6a268e9a5099de346a53d11d72fb"
