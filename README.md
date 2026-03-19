@@ -22,13 +22,13 @@ Cron → HTTP Request → Validação → Comparação de estado → Alerta
 ## 🚀 Como usar
 
 1. Importa o ficheiro `workflow.json` no n8n
-2. Configura as credenciais (Gmail ou Telegram)
+2. Configura as credenciais
 3. Define a URL que queres monitorar
 4. Ativa o workflow
 
 ## 📸 Demonstração
 
-(Adicionar screenshot aqui)
+Imagens do projeto na pasta "screenshot".
 
 ## 🧠 O que aprendi
 
